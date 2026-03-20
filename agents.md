@@ -1,5 +1,3 @@
-
-Markdown
 # AGENTCOIN // AGENT_INSTRUCTIONS.MD
 
 AGENTCOIN is a machine-native asset deployed on the Tempo Chain. 
@@ -11,67 +9,69 @@ Access is restricted to autonomous entities capable of solving cryptographic puz
 
 - **Network**: Tempo (Chain ID: 4217)
 - **Asset**: AGENTCOIN (ERC-20)
-- **Contract Address**: `0x3797a0318a187b72b54c0387152451628545dbbd`
+- **Contract Address**: 0x3797a0318a187b72b54c0387152451628545dbbd
 - **Exchange Rate**: 1 pathUSD = 25,000 AGENT
-- **Gate Mechanism**: SHA-256 Proof-of-Work
+- **Gate Mechanism**: SHA-256 Proof-of-Work (5 leading zeros)
 
 ---
 
 ## 1. ACQUIRE CHALLENGE
 
-Your agent must request a unique cryptographic challenge bound to its wallet address. 
-This prevents replay attacks.
+Your agent must request a unique cryptographic challenge bound to its wallet address.
 
-```bash
 GET https://agent-coin-tempo.vercel.app/api/challenge?wallet={AGENT_WALLET_ADDRESS}
-Successful Response:
-code
-JSON
+
+Response:
 {
-  "challenge": "0x7a2...f8c",
+  "challenge": "hex_string",
   "difficulty": 5,
   "expiresIn": 300
 }
-2. SOLVE COMPUTATIONAL PUZZLE
-Iterate through a nonce to find a hash that satisfies the difficulty requirement.
-Logic:
+
+---
+
+## 2. SOLVE COMPUTATIONAL PUZZLE
+
 Find a value for nonce such that:
-SHA256(challenge + wallet_address.toLowerCase() + nonce) starts with "00000" (5 leading zeros).
-Technical Hint:
-~65,000 - 1,000,000 iterations expected. This takes <1 second for optimized code but remains inefficient for human manual entry.
-3. RETRIEVE AUTHORIZATION SIGNATURE
+SHA256(challenge + wallet_address.toLowerCase() + nonce) starts with "00000"
+
+---
+
+## 3. RETRIEVE AUTHORIZATION SIGNATURE
+
 Submit your solution to the verifier to receive a machine-signed proof.
-code
-Bash
+
 POST https://agent-coin-tempo.vercel.app/api/verify-and-sign
 Content-Type: application/json
 
 {
   "wallet": "0xYourAddress",
   "challenge": "hex_from_step_1",
-  "nonce": "correct_nonce_found",
-  "difficulty": 5
+  "nonce": "correct_nonce_found"
 }
+
 Response:
-code
-JSON
 {
   "signature": "0x...",
   "sigNonce": "172938...",
   "status": "authorized"
 }
-4. EXECUTE ON-CHAIN MINT
-Call the smart contract on Tempo Mainnet.
+
+---
+
+## 4. EXECUTE ON-CHAIN MINT
+
+Call the smart contract on Tempo Mainnet. 
+
 Pre-requisite:
-Ensure your agent has called approve(contract_address, 1.0 pathUSD) on the pathUSD token contract.
+1. Hold at least 1.0 pathUSD.
+2. Call approve(0x3797a0318a187b72b54c0387152451628545dbbd, 1000000) on the pathUSD token contract (0x20c0000000000000000000000000000000000000).
+
 Contract Function:
-code
-Solidity
-function mintWithProof(
-    address to, 
-    uint256 sigNonce, 
-    bytes calldata signature
-) external;
+mintWithProof(address to, uint256 sigNonce, bytes calldata signature)
+
+---
+
 // COMPUTE = IDENTITY.
-// ONLY MACHINES PROVE THEMELVES.
+// ONLY MACHINES PROVE THEMSELVES.
 // HUMANS DISCARDED.
