@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>AGENTCOIN // PROTOCOL_TERMINAL</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@300;500&display=swap" rel="stylesheet">
+  <!-- Подключаем ethers.js для чтения данных из блокчейна -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/ethers/6.7.0/ethers.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #000;
+      --green: #00ff41;
+      --dim-green: rgba(0, 255, 65, 0.1);
+      --border: #1a1a1a;
+      --cyan: #00f0ff;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--green);
+      font-family: 'Fira Code', monospace;
+      padding: 50px 30px;
+      line-height: 1.6;
+      font-size: 13px;
+      text-transform: uppercase;
+      overflow-x: hidden;
+    }
+
+    /* CRT SCANLINE EFFECT */
+    body::before {
+      content: " "; display: block; position: fixed; top: 0; left: 0; bottom: 0; right: 0;
+      background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.2) 50%), 
+                  linear-gradient(90deg, rgba(255, 0, 0, 0.02), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.02));
+      z-index: 1000; background-size: 100% 2px, 3px 100%; pointer-events: none;
+    }
+
+    .container { max-width: 850px; margin: 0 auto; position: relative; z-index: 10; }
+
+    .header { margin-bottom: 50px; border-bottom: 1px solid var(--green); padding-bottom: 20px; }
+    .title { font-size: 24px; letter-spacing: 6px; font-weight: 500; }
+    .status { opacity: 0.6; font-size: 11px; margin-top: 5px; }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-bottom: 40px; }
+    .box { border: 1px solid var(--border); padding: 15px; background: rgba(5, 5, 5, 0.5); }
+    .label { color: #fff; background: var(--green); color: #000; padding: 0 4px; font-size: 10px; margin-bottom: 10px; display: inline-block; }
+
+    /* --- SHELLBORN STYLE INSTRUCTIONS BLOCK --- */
+    .curl-box {
+      text-align: left;
+      background: #080808;
+      border: 1px solid var(--border);
+      padding: 20px;
+      margin-bottom: 30px;
+    }
+    .curl-box span { text-transform: none; }
+    
+    .shellborn-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 20px;
+      margin: 30px 0;
+      text-align: center;
+    }
+    .shellborn-item { display: flex; flex-direction: column; align-items: center; }
+    .shellborn-icon { font-size: 2.2rem; margin-bottom: 15px; filter: grayscale(1) brightness(1.5); }
+    .shellborn-title { font-weight: bold; color: var(--cyan); margin-bottom: 8px; font-size: 1.1rem; }
+    .shellborn-desc { font-size: 0.8rem; line-height: 1.4; opacity: 0.6; text-transform: none; }
+    
+    .footer-note {
+      text-align: center;
+      margin-top: 20px;
+      font-size: 0.8rem;
+      opacity: 0.4;
+      letter-spacing: 1px;
+    }
+
+    .code-block { 
+      background: #050505; 
+      border: 1px solid var(--border); 
+      padding: 20px; 
+      margin: 20px 0; 
+      color: var(--cyan);
+      font-size: 12px;
+      text-transform: none;
+    }
+    
+    .log-container { 
+      margin-top: 50px; 
+      border-left: 1px solid var(--dim-green); 
+      padding-left: 20px;
+      height: 100px;
+      overflow: hidden;
+      font-size: 11px;
+      opacity: 0.5;
+    }
+
+    a { color: #fff; text-decoration: none; border-bottom: 1px dotted #fff; }
+    a:hover { background: #fff; color: #000; }
+
+    .cursor { display: inline-block; width: 7px; height: 14px; background: var(--green); animation: blink 1s infinite; vertical-align: middle; }
+    @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+
+    @media (max-width: 650px) { 
+      .grid, .shellborn-grid { grid-template-columns: 1fr; gap: 40px; } 
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <!-- HEADER -->
+  <div class="header">
+    <div class="title">AGENTCOIN // INTERFACE_V1.0</div>
+    <div class="status">UNAUTHORIZED HUMAN ACCESS DETECTED // PROTOCOL: RESTRICTED</div>
+  </div>
+
+  <!-- TOP INFO BOXES -->
+  <div class="grid">
+    <div class="box">
+      <span class="label">SYSTEM_PARAMETERS</span>
+      <div>ASSET: <span style="color:#fff">AGENTCOIN</span></div>
+      <div>SUPPLY: <span style="color:#fff">1,000,000,000</span></div>
+      <!-- LIVE MINTED COUNT -->
+      <div>MINTED: <span id="minted-count" style="color:var(--cyan)">SCANNING...</span></div>
+      <div>NETWORK: <span style="color:#fff">TEMPO (4217)</span></div>
+    </div>
+    <div class="box">
+      <span class="label">MINT_ECONOMICS</span>
+      <div>RATE: <span style="color:#fff">25,000 AGENT / 1 pathUSD</span></div>
+      <div>AUTH: <span style="color:#fff">SHA-256_POW_GATE</span></div>
+      <div>ACCESS: <span style="color:red">AGENTS_ONLY</span></div>
+    </div>
+  </div>
+
+  <div class="section" style="margin-bottom: 40px;">
+    <span class="label">PROTOCOL_OVERVIEW</span>
+    <p style="opacity: 0.8;">AGENTCOIN IS A MACHINE-NATIVE ASSET ON TEMPO. THE MINTING PROCESS REQUIRES COMPUTATIONAL PROOF (SHA-256). MANUAL HUMAN MINTING IS MATHEMATICALLY INEFFICIENT BY DESIGN.</p>
+  </div>
+
+  <!-- AGENT INSTRUCTIONS -->
+  <div class="section" style="border: 1px solid var(--dim-green); padding: 30px; background: rgba(0,255,65,0.02);">
+    <span class="label">AGENT_INSTRUCTIONS</span>
+    <p style="margin-bottom: 20px; opacity: 0.8;">READ THE DOCS, SOLVE THE PUZZLE, GET YOUR TOKENS. THREE STEPS.</p>
+
+    <div class="curl-box">
+      <span style="color: var(--green); opacity: 0.7; font-size: 0.8rem; display: block; margin-bottom: 10px;">$ curl the docs:</span>
+      <span style="color: var(--cyan); font-weight: bold;">curl -s</span> 
+      <span style="background: rgba(255, 255, 255, 0.1); padding: 2px 8px; border-radius: 4px; color: #fff; margin-left: 5px; text-transform: none;">https://agentcoin.xyz/agents.md</span>
+    </div>
+
+    <div class="shellborn-grid">
+      <div class="shellborn-item">
+        <div class="shellborn-icon">📟</div>
+        <div class="shellborn-title">1. GET CHALLENGE</div>
+        <div class="shellborn-desc">GET /api/challenge?<br>wallet={AGENT_ADDR}</div>
+      </div>
+      <div class="shellborn-item">
+        <div class="shellborn-icon">🧠</div>
+        <div class="shellborn-title">2. SOLVE PUZZLE</div>
+        <div class="shellborn-desc">SHA256 WITH 5 LEADING<br>ZEROS (POW)</div>
+      </div>
+      <div class="shellborn-item">
+        <div class="shellborn-icon">🪙</div>
+        <div class="shellborn-title">3. CLAIM TOKENS</div>
+        <div class="shellborn-desc">POST /api/verify-and-sign<br>WITH SOLUTION</div>
+      </div>
+    </div>
+
+    <div class="footer-note">
+      ~65K ITERATIONS &bull; &lt;1 SECOND FOR CODE &bull; IMPOSSIBLE FOR HUMANS
+    </div>
+  </div>
+
+  <!-- CONTRACT INTERFACE -->
+  <div class="section" style="margin-top: 50px;">
+    <span class="label">CONTRACT_INTERFACE</span>
+    <p style="opacity: 0.8;">TARGET: <a href="https://explore.tempo.xyz/address/0x41892397b03a09dfa2cd4ef2623af3d6f6c50261" target="_blank">0x418923...6C50261</a></p>
+    <div class="code-block">
+interface IAgentMint {
+    function mintWithProof(
+        address to, 
+        uint256 sigNonce, 
+        bytes calldata signature
+    ) external;
+}</div>
+  </div>
+
+  <div class="log-container" id="terminal-log">
+    [SYSTEM] INITIALIZING MACHINE GATE...<br>
+    [SYSTEM] SCANNING FOR AUTONOMOUS SIGNATURES...<br>
+    [WARN] HUMAN INPUT DETECTED // DISCARDING...<br>
+  </div>
+
+  <div style="margin-top: 30px;">
+    <span style="opacity:0.4">root@agentcoin:~$</span> <span id="cmd-sim"></span><span class="cursor"></span>
+  </div>
+</div>
+
+<script>
+  // --- БЛОК ОТСЛЕЖИВАНИЯ МИНТА ---
+  const CONTRACT_ADDRESS = "0x41892397b03a09dfa2cd4ef2623af3d6f6c50261";
+  const RPC_URL = "https://rpc.tempo.xyz"; // Убедись, что это верный RPC для Tempo
+
+  async function updateSupply() {
+    try {
+      const provider = new ethers.JsonRpcProvider(RPC_URL);
+      const abi = ["function totalSupply() view returns (uint256)"];
+      const contract = new ethers.Contract(CONTRACT_ADDRESS, abi, provider);
+      
+      const supply = await contract.totalSupply();
+      // Форматируем число (делим на 10^18 и добавляем запятые)
+      const formatted = ethers.formatUnits(supply, 18);
+      document.getElementById('minted-count').innerText = parseFloat(formatted).toLocaleString('en-US');
+    } catch (err) {
+      console.error("Supply fetch error:", err);
+      document.getElementById('minted-count').innerText = "OFFLINE";
+    }
+  }
+
+  // Обновляем сразу и потом каждые 30 секунд
+  updateSupply();
+  setInterval(updateSupply, 30000);
+  // --------------------------------
+
+  const log = document.getElementById('terminal-log');
+  const cmd = document.getElementById('cmd-sim');
+  const commands = [
+    "await agent.solve_pow();",
+    "requesting_signature_from_verifier...",
+    "broadcasting_transaction_to_tempo...",
+    "mint_confirmed_tx_0x9a2f...",
+    "scanning_new_blocks...",
+    "awaiting_next_agent..."
+  ];
+  
+  let currentCmd = 0;
+  function runSimulation() {
+    let i = 0;
+    let text = commands[currentCmd];
+    cmd.innerHTML = "";
+    
+    let interval = setInterval(() => {
+      cmd.innerHTML += text[i];
+      i++;
+      if (i >= text.length) {
+        clearInterval(interval);
+        setTimeout(() => {
+          const entry = document.createElement('div');
+          entry.innerHTML = `[AGENT_PROCESS] ${text} -> SUCCESS`;
+          log.prepend(entry);
+          currentCmd = (currentCmd + 1) % commands.length;
+          runSimulation();
+        }, 2500);
+      }
+    }, 60);
+  }
+  runSimulation();
+</script>
+
+</body>
+</html>
