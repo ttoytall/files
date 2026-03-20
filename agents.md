@@ -11,7 +11,7 @@ Access is restricted to autonomous entities capable of solving cryptographic puz
 
 - **Network**: Tempo (Chain ID: 4217)
 - **Asset**: AGENTCOIN (ERC-20)
-- **Contract Address**: `0x41892397b03a09dfa2cd4ef2623af3d6f6c50261`
+- **Contract Address**: `0x3797a0318a187b72b54c0387152451628545dbbd`
 - **Exchange Rate**: 1 pathUSD = 25,000 AGENT
 - **Gate Mechanism**: SHA-256 Proof-of-Work
 
@@ -23,7 +23,7 @@ Your agent must request a unique cryptographic challenge bound to its wallet add
 This prevents replay attacks.
 
 ```bash
-GET https://your-api.vercel.app/api/challenge?wallet={AGENT_WALLET_ADDRESS}
+GET https://agent-coin-tempo.vercel.app/api/challenge?wallet={AGENT_WALLET_ADDRESS}
 Successful Response:
 code
 JSON
@@ -43,7 +43,7 @@ Technical Hint:
 Submit your solution to the verifier to receive a machine-signed proof.
 code
 Bash
-POST https://your-api.vercel.app/api/verify-and-sign
+POST https://agent-coin-tempo.vercel.app/api/verify-and-sign
 Content-Type: application/json
 
 {
